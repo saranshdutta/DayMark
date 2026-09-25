@@ -1,0 +1,269 @@
+/* =========================
+   Large Screens
+   ========================= */
+
+@media (max-width: 1280px) {
+  .dm-content-area {
+    padding: 28px;
+  }
+
+  .dm-stats-grid {
+    gap: 12px;
+  }
+
+  .dm-profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* =========================
+   Tablet
+   ========================= */
+
+@media (max-width: 1024px) {
+  :root {
+    --dm-sidebar-width: 220px;
+  }
+
+  .dm-content-area {
+    padding: 24px;
+  }
+
+  .dm-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dm-dashboard-main-grid,
+  .dm-dashboard-secondary-grid,
+  .dm-dashboard-bottom-grid,
+  .dm-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-calendar-page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-activity-list,
+  .dm-goal-list-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   Small Tablet / Mobile
+   ========================= */
+
+@media (max-width: 768px) {
+  .dm-main-content {
+    margin-left: 0;
+    padding-bottom: 70px;
+  }
+
+  .dm-content-area {
+    padding: 20px 16px;
+  }
+
+  .dm-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .dm-page-header>.dm-button {
+    width: 100%;
+  }
+
+  .dm-page-title-row h1 {
+    font-size: var(--dm-text-xl);
+  }
+
+  .dm-dashboard-welcome {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dm-dashboard-welcome h1 {
+    font-size: var(--dm-text-2xl);
+  }
+
+  .dm-dashboard-welcome>.dm-button {
+    width: 100%;
+  }
+
+  .dm-profile-form {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-theme-options {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-notification-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dm-profile-overview {
+    align-items: flex-start;
+  }
+
+  .dm-profile-edit-actions {
+    width: 100%;
+  }
+
+  .dm-profile-edit-actions .dm-button {
+    flex: 1;
+  }
+
+  .dm-goals-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dm-goal-filters {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 3px;
+  }
+
+  .dm-goal-filters button {
+    flex-shrink: 0;
+  }
+
+  .dm-date-range-selector {
+    width: 100%;
+  }
+
+  .dm-date-range-selector select {
+    flex: 1;
+  }
+
+  .dm-calendar-day {
+    min-height: 58px;
+  }
+}
+
+/* =========================
+   Mobile
+   ========================= */
+
+@media (max-width: 560px) {
+  .dm-content-area {
+    padding: 18px 13px;
+  }
+
+  .dm-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .dm-stat-card {
+    padding: 15px;
+  }
+
+  .dm-stat-card-value {
+    font-size: var(--dm-text-lg);
+  }
+
+  .dm-stat-card-title {
+    margin-top: 11px;
+  }
+
+  .dm-profile-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-profile-overview {
+    flex-direction: column;
+  }
+
+  .dm-profile-avatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .dm-profile-section,
+  .dm-settings-section,
+  .dm-calendar,
+  .dm-day-activities,
+  .dm-chart-card,
+  .dm-goal-progress,
+  .dm-recent-activities,
+  .dm-weekly-progress,
+  .dm-streak-card,
+  .dm-quick-actions {
+    padding: 17px;
+  }
+
+  .dm-activity-card {
+    align-items: flex-start;
+  }
+
+  .dm-card-actions {
+    flex-direction: column;
+  }
+
+  .dm-calendar {
+    overflow-x: auto;
+  }
+
+  .dm-calendar-weekdays,
+  .dm-calendar-grid {
+    min-width: 480px;
+  }
+
+  .dm-notification-item {
+    padding: 14px;
+  }
+
+  .dm-notification-actions {
+    flex-direction: column;
+  }
+
+  .dm-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .dm-modal {
+    max-height: 90vh;
+    border-radius: var(--dm-radius-xl) var(--dm-radius-xl) 0 0;
+  }
+
+  .dm-auth-page {
+    padding: 18px 13px;
+  }
+
+  .dm-auth-card {
+    padding: 22px 18px;
+  }
+}
+
+/* =========================
+   Very Small Screens
+   ========================= */
+
+@media (max-width: 380px) {
+  .dm-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dm-page-title-row {
+    gap: 9px;
+  }
+
+  .dm-page-title-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .dm-dashboard-welcome h1 {
+    font-size: var(--dm-text-xl);
+  }
+
+  .dm-streak-days {
+    gap: 4px;
+  }
+}

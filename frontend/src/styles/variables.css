@@ -1,0 +1,150 @@
+:root {
+  /* =========================
+     DayMark Color System - Phase 11
+     ========================= */
+
+  /* Backgrounds & Surfaces */
+  --dm-bg: #f9f8f5;           /* Warm cream / off-white */
+  --dm-surface: #ffffff;      /* Clean neutral white */
+  --dm-surface-soft: #f4f3ef; /* Slightly darker cream for cards/sections */
+  --dm-surface-glass: rgba(255, 255, 255, 0.85);
+  --dm-surface-glass-border: rgba(255, 255, 255, 0.6);
+
+  /* Typography Colors */
+  --dm-text: #1a201c;             /* Very dark slate/green for max contrast */
+  --dm-text-secondary: #5c6860;   /* Muted grey-green */
+  --dm-text-muted: #8b998f;       /* Lighter muted sage */
+
+  /* Accents */
+  --dm-primary: #2c4d3b;          /* Deep forest green */
+  --dm-primary-dark: #1f382a;     /* Darker forest */
+  --dm-primary-soft: #eaf1ed;     /* Very pale green for active states/badges */
+
+  /* Borders */
+  --dm-border: #e6e4df;           /* Soft warm border */
+  --dm-border-strong: #d4d1c9;    /* Stronger warm border */
+
+  /* States */
+  --dm-success: #3c6e4e;
+  --dm-success-soft: #edf5f0;
+
+  --dm-warning: #997428;
+  --dm-warning-soft: #fcf6e8;
+
+  --dm-danger: #a54646;
+  --dm-danger-soft: #faebeb;
+
+  --dm-info: #4a6c8c;
+  --dm-info-soft: #edf3f8;
+
+  /* =========================
+     Typography
+     ========================= */
+
+  --dm-font:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+
+  --dm-font-mono:
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+
+  /* Refined scaling for editorial feel */
+  --dm-text-xs: 0.75rem;     /* 12px */
+  --dm-text-sm: 0.875rem;    /* 14px */
+  --dm-text-base: 1rem;      /* 16px */
+  --dm-text-md: 1.125rem;    /* 18px */
+  --dm-text-lg: 1.25rem;     /* 20px */
+  --dm-text-xl: 1.5rem;      /* 24px */
+  --dm-text-2xl: 2rem;       /* 32px */
+  --dm-text-3xl: 2.5rem;     /* 40px */
+  --dm-text-4xl: 3rem;       /* 48px */
+
+  /* =========================
+     Spacing
+     ========================= */
+
+  --dm-space-1: 0.25rem;
+  --dm-space-2: 0.5rem;
+  --dm-space-3: 0.75rem;
+  --dm-space-4: 1rem;
+  --dm-space-5: 1.25rem;
+  --dm-space-6: 1.5rem;
+  --dm-space-8: 2rem;
+  --dm-space-10: 2.5rem;
+  --dm-space-12: 3rem;
+  --dm-space-16: 4rem;
+
+  /* =========================
+     Radius
+     ========================= */
+  /* Reduced border radius for a more mature, refined look */
+  --dm-radius-sm: 4px;
+  --dm-radius-md: 8px;
+  --dm-radius-lg: 12px;
+  --dm-radius-xl: 16px;
+
+  /* =========================
+     Shadows & Glass
+     ========================= */
+  /* Softer, more elegant shadows */
+  --dm-shadow-sm: 0 1px 2px rgba(26, 32, 28, 0.04);
+  --dm-shadow-md: 0 4px 12px rgba(26, 32, 28, 0.06);
+  --dm-shadow-lg: 0 12px 24px rgba(26, 32, 28, 0.08);
+
+  --dm-glass-blur: blur(8px);
+
+  /* =========================
+     Layout
+     ========================= */
+
+  --dm-sidebar-width: 260px;
+  --dm-header-height: 72px;
+  --dm-content-max-width: 1280px; /* Reduced for better reading line-lengths */
+
+  /* =========================
+     Transitions
+     ========================= */
+
+  --dm-transition: 150ms ease;
+  --dm-transition-slow: 250ms ease;
+  --dm-transition-bounce: 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root.dm-dark {
+  --dm-bg: #141715;           /* Very dark slate/green */
+    --dm-surface: #1b201d;      /* Slightly lighter surface */
+    --dm-surface-soft: #232a26; /* Softer dark surface */
+    --dm-surface-glass: rgba(27, 32, 29, 0.85);
+    --dm-surface-glass-border: rgba(255, 255, 255, 0.05);
+
+    --dm-text: #f0f2f0;             /* Off-white */
+    --dm-text-secondary: #9ea8a1;   /* Muted sage */
+    --dm-text-muted: #6f7a73;
+
+    --dm-primary: #528266;          /* Lighter forest green for contrast */
+    --dm-primary-dark: #6a9c7e;
+    --dm-primary-soft: #1d3326;     /* Dark washed green */
+
+    --dm-border: #2a332e;
+    --dm-border-strong: #39453e;
+
+    --dm-success: #529c6f;
+    --dm-success-soft: #193022;
+
+    --dm-warning: #c29944;
+    --dm-warning-soft: #382c14;
+
+    --dm-danger: #c75e5e;
+    --dm-danger-soft: #3a1a1a;
+
+    --dm-info: #648fb5;
+    --dm-info-soft: #1c2b38;
+
+    --dm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --dm-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --dm-shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.4);
+}

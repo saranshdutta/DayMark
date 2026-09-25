@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activityLogs  ActivityLog[]
+  goals         Goal[]
+  notifications Notification[]
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  name      String
+  category  String   // PHYSICAL, ACADEMIC, LIFESTYLE, CUSTOM
+  unit      String
+  icon      String?
+  createdAt DateTime @default(now())
+
+  activityLogs ActivityLog[]
+  goals        Goal[]
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Restrict)
+  activityId String
+  value      Float?
+  duration   Int?
+  note       String?
+  loggedAt   DateTime
+  createdAt  DateTime @default(now())
+}
+
+model Goal {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  activity    Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+  activityId  String?
+  title       String
+  targetValue Float
+  unit        String
+  frequency   String   // DAILY, WEEKLY, MONTHLY
+  startDate   DateTime
+  endDate     DateTime?
+  status      String   // ACTIVE, COMPLETED, PAUSED, ARCHIVED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
