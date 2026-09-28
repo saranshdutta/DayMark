@@ -19,6 +19,7 @@ function Calendar() {
   );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [addError, setAddError] = useState("");
 
   const displayActivities = activities;
 
@@ -55,13 +56,19 @@ function Calendar() {
     setSelectedDate(date);
   };
 
-  const handleAddActivity = (activityData) => {
-    addActivity({
-      ...activityData,
-      loggedAt: `${selectedDate}T${new Date().toTimeString().split(" ")[0]}`,
-    });
-
-    setIsModalOpen(false);
+  const handleAddActivity = async (activityData) => {
+    setAddError("");
+    try {
+      await addActivity({
+        ...activityData,
+        loggedAt: activityData.loggedAt || `${selectedDate}T${new Date().toTimeString().split(" ")[0]}`,
+      });
+      setIsModalOpen(false);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Failed to save activity. Please try again.";
+      setAddError(message);
+    }
   };
 
   return (
@@ -103,13 +110,18 @@ function Calendar() {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => { setIsModalOpen(false); setAddError(""); }}
         title="Add activity"
         description={`Log an activity for ${selectedDate}.`}
       >
+        {addError && (
+          <div className="dm-form-error" style={{ marginBottom: "1rem" }}>
+            {addError}
+          </div>
+        )}
         <ActivityForm
           onSubmit={handleAddActivity}
-          onCancel={() => setIsModalOpen(false)}
+          onCancel={() => { setIsModalOpen(false); setAddError(""); }}
         />
       </Modal>
     </div>

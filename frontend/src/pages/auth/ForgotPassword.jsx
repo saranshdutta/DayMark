@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
 import Button from "../../components/common/Button";
+import authService from "../../services/authService";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -21,18 +22,13 @@ function ForgotPassword() {
     setError("");
 
     try {
-      /*
-       * Temporary password reset flow.
-       * Replace with authService.forgotPassword()
-       * when the backend is connected.
-       */
-      await new Promise((resolve) => setTimeout(resolve, 600));
-
+      await authService.forgotPassword(email.trim());
       setSubmitted(true);
     } catch (submitError) {
-      console.error(submitError);
-
-      setError("Unable to process your request. Please try again.");
+      const message =
+        submitError?.response?.data?.message ||
+        "Unable to process your request. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -57,7 +53,7 @@ function ForgotPassword() {
                 <h1>Reset your password</h1>
 
                 <p>
-                  Enter your email and we'll send you instructions to reset your
+                  Enter your email and we&apos;ll send you instructions to reset your
                   password.
                 </p>
               </div>

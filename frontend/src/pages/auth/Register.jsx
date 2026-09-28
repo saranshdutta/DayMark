@@ -31,7 +31,7 @@ function Register() {
 
     if (!form.name.trim()) { setError("Please enter your name."); return; }
     if (!form.email.trim()) { setError("Please enter your email."); return; }
-    if (form.password.length < 6) { setError("Password must contain at least 6 characters."); return; }
+    if (form.password.length < 8) { setError("Password must be at least 8 characters."); return; }
     if (form.password !== form.confirmPassword) { setError("Passwords do not match."); return; }
 
     setLoading(true);
@@ -114,7 +114,7 @@ function Register() {
                   type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => updateField("password", e.target.value)}
-                  placeholder="At least 6 characters"
+                  placeholder="At least 8 characters"
                   autoComplete="new-password"
                   required
                 />

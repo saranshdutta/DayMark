@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { BarChart3, Activity, Target, Clock3, Flame } from "lucide-react";
 
 import StatCard from "../components/dashboard/StatCard";
@@ -11,7 +11,7 @@ import { useApp } from "../context/AppContext";
 import analyticsService from "../services/analyticsService";
 
 function Analytics() {
-  const { activities, goals } = useApp();
+  const { goals } = useApp();
 
   const [dateRange, setDateRange] = useState("7d");
   const [loading, setLoading] = useState(true);
@@ -19,29 +19,34 @@ function Analytics() {
   const [categoryData, setCategoryData] = useState([]);
   const [streak, setStreak] = useState({ current: 0, longest: 0 });
 
+  // Summary stats scoped to the selected date range (from backend)
+  const [rangedStats, setRangedStats] = useState({
+    totalActivities: 0,
+    totalDuration: 0,
+  });
+
   useEffect(() => {
     let isMounted = true;
 
     async function fetchAnalytics() {
       setLoading(true);
       try {
-        const [trendRes, categoryRes, streakRes] = await Promise.all([
+        const [trendRes, categoryRes, streakRes, overviewRes] = await Promise.all([
           analyticsService.getActivityTrend({ range: dateRange }),
           analyticsService.getCategoryBreakdown({ range: dateRange }),
           analyticsService.getStreak(),
+          analyticsService.getOverview({ range: dateRange }),
         ]);
 
         if (isMounted) {
-          // trendRes is array of { date, count }
-          // trendData for recharts needs { date, value }
+          // trendRes: array of { date, count }
           const formattedTrend = (trendRes || []).map((t) => ({
             date: new Date(t.date).toLocaleDateString(undefined, { weekday: "short" }),
             value: t.count,
           }));
           setTrendData(formattedTrend);
 
-          // categoryRes is array of { category, count, totalDuration }
-          // categoryData for recharts needs { name, value }
+          // categoryRes: array of { category, count, totalDuration }
           const formattedCategories = (categoryRes || []).map((c) => ({
             name: c.category.charAt(0) + c.category.slice(1).toLowerCase(),
             value: c.count,
@@ -49,6 +54,17 @@ function Analytics() {
           setCategoryData(formattedCategories);
 
           setStreak(streakRes || { current: 0, longest: 0 });
+
+          // overviewRes: { totalLogs, totalGoals, activeGoals, range }
+          // Derive totalDuration from the category breakdown (same date window)
+          const totalDuration = (categoryRes || []).reduce(
+            (sum, c) => sum + (c.totalDuration || 0),
+            0,
+          );
+          setRangedStats({
+            totalActivities: overviewRes?.totalLogs ?? 0,
+            totalDuration,
+          });
         }
       } catch (error) {
         console.error("Error fetching analytics:", error);
@@ -66,46 +82,30 @@ function Analytics() {
     };
   }, [dateRange]);
 
-  const displayActivities = activities;
   const displayGoals = goals;
 
-  const stats = useMemo(() => {
-    const totalActivities = displayActivities.length;
-
-    const activeTime = displayActivities.reduce(
-      (total, activity) => total + (Number(activity.duration) || 0),
-      0,
-    );
-
-    const goalProgress =
-      displayGoals.length > 0
-        ? Math.round(
-            displayGoals.reduce((total, goal) => {
-              if (!goal.target && !goal.targetValue) {
-                return total;
-              }
-              const target = Number(goal.targetValue || goal.target);
-              const progress = Math.min(
-                100,
-                ((Number(goal.currentProgress || goal.current || 0)) / target) * 100,
-              );
-
-              return total + progress;
-            }, 0) / displayGoals.length,
-          )
-        : 0;
-
-    return {
-      totalActivities,
-      activeTime,
-      goalProgress,
-    };
-  }, [displayActivities, displayGoals]);
+  const goalProgress =
+    displayGoals.length > 0
+      ? Math.round(
+          displayGoals.reduce((total, goal) => {
+            if (!goal.target && !goal.targetValue) return total;
+            const target = Number(goal.targetValue || goal.target);
+            const progress = Math.min(
+              100,
+              (Number(goal.currentProgress || goal.current || 0) / target) * 100,
+            );
+            return total + progress;
+          }, 0) / displayGoals.length,
+        )
+      : 0;
 
   const formattedActiveTime =
-    stats.activeTime >= 60
-      ? `${Math.floor(stats.activeTime / 60)}h ${stats.activeTime % 60}m`
-      : `${stats.activeTime}m`;
+    rangedStats.totalDuration >= 60
+      ? `${Math.floor(rangedStats.totalDuration / 60)}h ${rangedStats.totalDuration % 60}m`
+      : `${rangedStats.totalDuration}m`;
+
+  const hasRangedData = rangedStats.totalActivities > 0;
+  const hasGoals = displayGoals.length > 0;
 
   return (
     <div className="dm-page">
@@ -127,8 +127,8 @@ function Analytics() {
       <div className="dm-stats-grid">
         <StatCard
           title="Total activities"
-          value={stats.totalActivities}
-          subtitle={`For ${dateRange}`}
+          value={rangedStats.totalActivities}
+          subtitle="Selected period"
           icon={Activity}
         />
 
@@ -141,7 +141,7 @@ function Analytics() {
 
         <StatCard
           title="Goal completion"
-          value={`${stats.goalProgress}%`}
+          value={`${goalProgress}%`}
           subtitle="Average progress"
           icon={Target}
         />
@@ -158,7 +158,7 @@ function Analytics() {
         <div style={{ textAlign: "center", padding: "2rem", color: "var(--dm-text-muted)" }}>
           Loading analytics...
         </div>
-      ) : displayActivities.length === 0 && displayGoals.length === 0 ? (
+      ) : !hasRangedData && !hasGoals ? (
         <EmptyState
           icon={BarChart3}
           title="No data to analyze"
@@ -172,7 +172,7 @@ function Analytics() {
           </div>
 
           <div className="dm-analytics-full">
-            {displayGoals.length > 0 ? (
+            {hasGoals ? (
               <GoalAnalytics
                 data={displayGoals.map((goal) => {
                   const target = Number(goal.targetValue || goal.target);

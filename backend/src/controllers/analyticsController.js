@@ -1,12 +1,16 @@
 const prisma = require("../utils/prisma");
 
-// Helper: get date range based on range string "7d" | "30d" | "90d"
+// Helper: get date range based on range string
+// Supported values: "7d" | "30d" | "3m" | "6m" | "1y"
+// Legacy backend-only value "90d" is also still accepted.
 function parseDateRange(range) {
   const now = new Date();
   const start = new Date();
   if (range === "30d") start.setDate(now.getDate() - 30);
-  else if (range === "90d") start.setDate(now.getDate() - 90);
-  else start.setDate(now.getDate() - 7); // default 7d
+  else if (range === "90d" || range === "3m") start.setDate(now.getDate() - 90);
+  else if (range === "6m") start.setDate(now.getDate() - 180);
+  else if (range === "1y") start.setDate(now.getDate() - 365);
+  else start.setDate(now.getDate() - 7); // default: 7d
   start.setHours(0, 0, 0, 0);
   return { start, end: now };
 }

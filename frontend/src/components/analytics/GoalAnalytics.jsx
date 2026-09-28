@@ -8,15 +8,11 @@ import {
   Tooltip,
 } from "recharts";
 
-const defaultData = [
-  { name: "Steps", completed: 82, target: 100 },
-  { name: "Study", completed: 74, target: 100 },
-  { name: "Exercise", completed: 68, target: 100 },
-  { name: "Reading", completed: 55, target: 100 },
-  { name: "Water", completed: 88, target: 100 },
-];
+function GoalAnalytics({ data = [] }) {
+  if (!data || data.length === 0) {
+    return null;
+  }
 
-function GoalAnalytics({ data = defaultData }) {
   return (
     <div className="dm-panel">
       <div className="dm-panel-header">
