@@ -25,14 +25,30 @@ api.interceptors.request.use(
 
 /*
  * Handle authentication failures globally.
+ * Only redirect to login if the 401 is NOT from an auth endpoint
+ * (login/register themselves can return 401 for bad credentials).
  */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("daymark_token");
-      localStorage.removeItem("daymark_user");
-      window.location.href = "/login";
+    const isAuthEndpoint =
+      error.config?.url?.includes("/auth/login") ||
+      error.config?.url?.includes("/auth/register");
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
+      // Only clear + redirect if we are genuinely unauthenticated
+      const token = localStorage.getItem("daymark_token");
+      if (token) {
+        // Token was present but server rejected it (expired/invalid)
+        localStorage.removeItem("daymark_token");
+        localStorage.removeItem("daymark_user");
+
+        const authPaths = ["/login", "/register", "/forgot-password", "/"];
+        const isOnAuthPage = authPaths.some((p) => window.location.pathname === p);
+        if (!isOnAuthPage) {
+          window.location.href = "/login";
+        }
+      }
     }
 
     return Promise.reject(error);

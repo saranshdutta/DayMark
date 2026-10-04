@@ -26,26 +26,16 @@ export const ACTIVITY_CATEGORIES = {
   PHYSICAL: "PHYSICAL",
   ACADEMIC: "ACADEMIC",
   LIFESTYLE: "LIFESTYLE",
+  SOCIAL: "SOCIAL",
   CUSTOM: "CUSTOM",
 };
 
 export const ACTIVITY_CATEGORY_OPTIONS = [
-  {
-    value: "PHYSICAL",
-    label: "Physical",
-  },
-  {
-    value: "ACADEMIC",
-    label: "Academic",
-  },
-  {
-    value: "LIFESTYLE",
-    label: "Lifestyle",
-  },
-  {
-    value: "CUSTOM",
-    label: "Custom",
-  },
+  { value: "PHYSICAL", label: "Physical" },
+  { value: "ACADEMIC", label: "Academic" },
+  { value: "LIFESTYLE", label: "Lifestyle" },
+  { value: "SOCIAL", label: "Social" },
+  { value: "CUSTOM", label: "Custom" },
 ];
 
 /* =========================
@@ -227,12 +217,15 @@ export const ROUTES = {
   LOGIN: "/login",
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
+  ONBOARDING: "/onboarding",
 
   DASHBOARD: "/dashboard",
   ACTIVITIES: "/activities",
   GOALS: "/goals",
+  WELLNESS: "/wellness",
   ANALYTICS: "/analytics",
   CALENDAR: "/calendar",
+  FOCUS: "/focus",
   NOTIFICATIONS: "/notifications",
   PROFILE: "/profile",
   SETTINGS: "/settings",
@@ -334,8 +327,40 @@ export const CATEGORY_LABELS = {
   PHYSICAL: "Physical",
   ACADEMIC: "Academic",
   LIFESTYLE: "Lifestyle",
+  SOCIAL: "Social",
   CUSTOM: "Custom",
 };
+
+/* =========================
+   Wellness / Mood
+   ========================= */
+
+export const MOOD_OPTIONS = [
+  { value: "VERY_LOW", label: "Very Low", emoji: "😔", score: 1 },
+  { value: "LOW", label: "Low", emoji: "😕", score: 2 },
+  { value: "OKAY", label: "Okay", emoji: "😐", score: 3 },
+  { value: "GOOD", label: "Good", emoji: "🙂", score: 4 },
+  { value: "GREAT", label: "Great", emoji: "😄", score: 5 },
+];
+
+export const ENERGY_OPTIONS = [
+  { value: "LOW", label: "Low", emoji: "🪫" },
+  { value: "MEDIUM", label: "Medium", emoji: "⚡" },
+  { value: "HIGH", label: "High", emoji: "🔋" },
+];
+
+export const STRESS_OPTIONS = [
+  { value: "LOW", label: "Low", emoji: "😌" },
+  { value: "MEDIUM", label: "Medium", emoji: "😤" },
+  { value: "HIGH", label: "High", emoji: "😰" },
+];
+
+export const SLEEP_QUALITY_OPTIONS = [
+  { value: "POOR", label: "Poor", emoji: "😴" },
+  { value: "FAIR", label: "Fair", emoji: "🛌" },
+  { value: "GOOD", label: "Good", emoji: "😊" },
+  { value: "EXCELLENT", label: "Excellent", emoji: "✨" },
+];
 
 export const GOAL_STATUS_LABELS = {
   ACTIVE: "Active",

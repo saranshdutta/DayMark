@@ -1,44 +1,72 @@
-import { LoaderCircle } from "lucide-react";
+import React from "react";
+import { Loader2 } from "lucide-react";
 
-function Button({
+export function Button({
   children,
-  type = "button",
   variant = "primary",
-  size = "medium",
+  size = "md",
+  icon: Icon,
+  iconPosition = "left",
   loading = false,
   disabled = false,
   fullWidth = false,
   className = "",
   onClick,
+  type = "button",
   ...props
 }) {
-  const buttonClassName = [
-    "dm-button",
-    `dm-button-${variant}`,
-    `dm-button-${size}`,
-    fullWidth ? "dm-button-full" : "",
-    loading ? "is-loading" : "",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const variantClass = `dm-button-${variant}`;
+  const sizeClass = `dm-button-${size}`;
+  const fullWidthClass = fullWidth ? "w-full" : "";
 
   return (
     <button
       type={type}
-      className={buttonClassName}
-      onClick={onClick}
+      className={`dm-button ${variantClass} ${sizeClass} ${fullWidthClass} ${className}`}
       disabled={disabled || loading}
+      onClick={onClick}
       {...props}
     >
       {loading ? (
-        <>
-          <LoaderCircle size={17} className="dm-button-spinner" />
-          <span>Loading...</span>
-        </>
-      ) : (
-        children
+        <Loader2 size={size === "sm" ? 14 : size === "lg" ? 20 : 16} className="animate-spin" />
+      ) : Icon && iconPosition === "left" ? (
+        <Icon size={size === "sm" ? 14 : size === "lg" ? 20 : 16} />
+      ) : null}
+
+      <span>{children}</span>
+
+      {!loading && Icon && iconPosition === "right" && (
+        <Icon size={size === "sm" ? 14 : size === "lg" ? 20 : 16} />
       )}
+    </button>
+  );
+}
+
+export function IconButton({
+  icon: Icon,
+  size = "md",
+  variant = "ghost",
+  className = "",
+  disabled = false,
+  title,
+  onClick,
+  type = "button",
+  ...props
+}) {
+  const sizeClass = `dm-icon-button-${size}`;
+  const iconSize = size === "sm" ? 14 : size === "lg" ? 20 : 16;
+
+  return (
+    <button
+      type={type}
+      className={`dm-icon-button ${sizeClass} ${className}`}
+      disabled={disabled}
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      {...props}
+    >
+      {Icon && <Icon size={iconSize} />}
     </button>
   );
 }

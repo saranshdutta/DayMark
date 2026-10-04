@@ -16,15 +16,36 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  activityLogs  ActivityLog[]
-  goals         Goal[]
-  notifications Notification[]
+  activityLogs    ActivityLog[]
+  goals           Goal[]
+  notifications   Notification[]
+  preference      UserPreference?
+  moodCheckIns    MoodCheckIn[]
+  sleepRecords    SleepRecord[]
+  hydrationLogs   HydrationLog[]
+  focusSessions   FocusSession[]
+}
+
+model UserPreference {
+  id                      String   @id @default(uuid())
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                  String   @unique
+  academicYear            String?
+  department              String?
+  dailySleepTarget        Float?   @default(8)
+  dailyStudyTarget        Int?     @default(120)
+  dailyExerciseTarget     Int?     @default(30)
+  dailyWaterTarget        Float?   @default(2.0)
+  preferredCategories     String?  // JSON array as string
+  onboardingCompleted     Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 model Activity {
   id        String   @id @default(uuid())
   name      String
-  category  String   // PHYSICAL, ACADEMIC, LIFESTYLE, CUSTOM
+  category  String   // PHYSICAL, ACADEMIC, LIFESTYLE, SOCIAL, CUSTOM
   unit      String
   icon      String?
   createdAt DateTime @default(now())
@@ -47,20 +68,69 @@ model ActivityLog {
 }
 
 model Goal {
-  id          String   @id @default(uuid())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
   activity    Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
   activityId  String?
   title       String
   targetValue Float
   unit        String
-  frequency   String   // DAILY, WEEKLY, MONTHLY
+  frequency   String    // DAILY, WEEKLY, MONTHLY
   startDate   DateTime
   endDate     DateTime?
-  status      String   // ACTIVE, COMPLETED, PAUSED, ARCHIVED
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String    // ACTIVE, COMPLETED, PAUSED, ARCHIVED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model MoodCheckIn {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  mood      String   // VERY_LOW, LOW, OKAY, GOOD, GREAT
+  energy    String   // LOW, MEDIUM, HIGH
+  stress    String   // LOW, MEDIUM, HIGH
+  note      String?
+  checkedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model SleepRecord {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  bedtime   DateTime
+  wakeTime  DateTime
+  duration  Float    // hours, calculated
+  quality   String?  // POOR, FAIR, GOOD, EXCELLENT
+  notes     String?
+  sleepDate DateTime // the date this sleep record belongs to (wake date)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HydrationLog {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  amount    Float    // in liters
+  loggedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model FocusSession {
+  id             String    @id @default(uuid())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  taskName       String?
+  duration       Int       // planned minutes
+  actualDuration Int?      // actual minutes
+  breakDuration  Int?      // break minutes
+  status         String    // COMPLETED, CANCELLED, IN_PROGRESS
+  startTime      DateTime
+  endTime        DateTime?
+  createdAt      DateTime  @default(now())
 }
 
 model Notification {
