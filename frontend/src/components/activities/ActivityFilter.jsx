@@ -23,6 +23,7 @@ function ActivityFilter({ category = "ALL", setCategory, date = "", setDate }) {
         <option value="PHYSICAL">Physical</option>
         <option value="ACADEMIC">Academic</option>
         <option value="LIFESTYLE">Lifestyle</option>
+        <option value="SOCIAL">Social</option>
         <option value="CUSTOM">Custom</option>
       </select>
 

@@ -1,12 +1,22 @@
-import { useMemo, useState, useEffect } from "react";
-import { BarChart3, Activity, Target, Clock3, Flame } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  BarChart3,
+  Activity,
+  Target,
+  Clock3,
+  Flame,
+  PieChart as PieIcon,
+  TrendingUp,
+} from "lucide-react";
 
+import { PageHeader } from "../components/common/PageHeader";
 import StatCard from "../components/dashboard/StatCard";
 import ActivityTrend from "../components/analytics/ActivityTrend";
 import CategoryChart from "../components/analytics/CategoryChart";
 import GoalAnalytics from "../components/analytics/GoalAnalytics";
-import DateRangeSelector from "../components/analytics/DateRangeSelector";
+import { Tabs } from "../components/common/Tabs";
 import EmptyState from "../components/common/EmptyState";
+
 import { useApp } from "../context/AppContext";
 import analyticsService from "../services/analyticsService";
 
@@ -32,16 +42,12 @@ function Analytics() {
         ]);
 
         if (isMounted) {
-          // trendRes is array of { date, count }
-          // trendData for recharts needs { date, value }
           const formattedTrend = (trendRes || []).map((t) => ({
-            date: new Date(t.date).toLocaleDateString(undefined, { weekday: "short" }),
+            date: new Date(t.date).toLocaleDateString(undefined, { weekday: "short", month: "numeric", day: "numeric" }),
             value: t.count,
           }));
           setTrendData(formattedTrend);
 
-          // categoryRes is array of { category, count, totalDuration }
-          // categoryData for recharts needs { name, value }
           const formattedCategories = (categoryRes || []).map((c) => ({
             name: c.category.charAt(0) + c.category.slice(1).toLowerCase(),
             value: c.count,
@@ -66,41 +72,26 @@ function Analytics() {
     };
   }, [dateRange]);
 
-  const displayActivities = activities;
-  const displayGoals = goals;
-
   const stats = useMemo(() => {
-    const totalActivities = displayActivities.length;
-
-    const activeTime = displayActivities.reduce(
-      (total, activity) => total + (Number(activity.duration) || 0),
-      0,
+    const totalActivities = activities.length;
+    const activeTime = activities.reduce(
+      (total, a) => total + (Number(a.duration) || 0),
+      0
     );
 
     const goalProgress =
-      displayGoals.length > 0
+      goals.length > 0
         ? Math.round(
-            displayGoals.reduce((total, goal) => {
-              if (!goal.target && !goal.targetValue) {
-                return total;
-              }
-              const target = Number(goal.targetValue || goal.target);
-              const progress = Math.min(
-                100,
-                ((Number(goal.currentProgress || goal.current || 0)) / target) * 100,
-              );
-
-              return total + progress;
-            }, 0) / displayGoals.length,
+            goals.reduce((total, goal) => {
+              const target = Number(goal.targetValue || goal.target || 1);
+              const current = Number(goal.currentProgress || goal.current || 0);
+              return total + Math.min(100, (current / target) * 100);
+            }, 0) / goals.length
           )
         : 0;
 
-    return {
-      totalActivities,
-      activeTime,
-      goalProgress,
-    };
-  }, [displayActivities, displayGoals]);
+    return { totalActivities, activeTime, goalProgress };
+  }, [activities, goals]);
 
   const formattedActiveTime =
     stats.activeTime >= 60
@@ -108,81 +99,102 @@ function Analytics() {
       : `${stats.activeTime}m`;
 
   return (
-    <div className="dm-page">
-      <div className="dm-page-header">
-        <div className="dm-page-title-row">
-          <div className="dm-page-title-icon">
-            <BarChart3 size={21} />
-          </div>
+    <div className="dm-animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: "var(--dm-space-6)" }}>
+      {/* Page Header & Range Switcher */}
+      <PageHeader
+        title="Analytics"
+        subtitle="Understand your habits and track long-term academic & wellness consistency."
+        actions={
+          <Tabs
+            tabs={[
+              { id: "7d", label: "7 Days" },
+              { id: "30d", label: "30 Days" },
+              { id: "90d", label: "90 Days" },
+            ]}
+            activeTab={dateRange}
+            onChange={setDateRange}
+          />
+        }
+      />
 
-          <div>
-            <h1>Analytics</h1>
-            <p>Understand your habits and track your progress over time.</p>
-          </div>
-        </div>
-
-        <DateRangeSelector value={dateRange} onChange={setDateRange} />
-      </div>
-
-      <div className="dm-stats-grid">
+      {/* Top Metric Cards */}
+      <div className="dm-grid-4">
         <StatCard
-          title="Total activities"
+          title="Total Activities"
           value={stats.totalActivities}
-          subtitle={`For ${dateRange}`}
+          subtitle={`Last ${dateRange}`}
           icon={Activity}
+          variant="primary"
         />
-
         <StatCard
-          title="Active time"
+          title="Logged Time"
           value={formattedActiveTime}
-          subtitle="Time logged"
+          subtitle="Active effort tracked"
           icon={Clock3}
+          variant="info"
         />
-
         <StatCard
-          title="Goal completion"
+          title="Goal Completion"
           value={`${stats.goalProgress}%`}
-          subtitle="Average progress"
+          subtitle="Average across goals"
           icon={Target}
+          variant="success"
+          progress={stats.goalProgress}
         />
-
         <StatCard
-          title="Current streak"
-          value={`${streak.current} ${streak.current === 1 ? "day" : "days"}`}
-          subtitle="Consistency"
+          title="Streak Record"
+          value={`${streak.current}d`}
+          subtitle={`Longest: ${streak.longest}d`}
           icon={Flame}
+          variant="warning"
         />
       </div>
 
+      {/* Visual Chart Hierarchy */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "2rem", color: "var(--dm-text-muted)" }}>
-          Loading analytics...
+        <div className="dm-card" style={{ padding: "var(--dm-space-10)", textAlign: "center", color: "var(--dm-text-muted)" }}>
+          Loading analytical charts...
         </div>
-      ) : displayActivities.length === 0 && displayGoals.length === 0 ? (
+      ) : activities.length === 0 && goals.length === 0 ? (
         <EmptyState
           icon={BarChart3}
-          title="No data to analyze"
-          message="Log some activities or create goals to see your analytics."
+          title="No analytics data available"
+          message="Log daily activities or create goals to view analytical trends over time."
         />
       ) : (
         <>
-          <div className="dm-analytics-grid">
-            <ActivityTrend data={trendData} />
-            <CategoryChart data={categoryData} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "var(--dm-space-5)" }}>
+            <div style={{ gridColumn: "span 8" }} className="dm-card">
+              <div className="dm-section-header">
+                <h2 className="dm-section-title">
+                  <TrendingUp size={18} style={{ color: "var(--dm-primary)" }} /> Activity Trend Line
+                </h2>
+              </div>
+              <ActivityTrend data={trendData} />
+            </div>
+
+            <div style={{ gridColumn: "span 4" }} className="dm-card">
+              <div className="dm-section-header">
+                <h2 className="dm-section-title">
+                  <PieIcon size={18} style={{ color: "var(--dm-primary)" }} /> Category Breakdown
+                </h2>
+              </div>
+              <CategoryChart data={categoryData} />
+            </div>
           </div>
 
-          <div className="dm-analytics-full">
-            {displayGoals.length > 0 ? (
+          <div className="dm-card">
+            <div className="dm-section-header">
+              <h2 className="dm-section-title">Goal Analytics</h2>
+            </div>
+            {goals.length > 0 ? (
               <GoalAnalytics
-                data={displayGoals.map((goal) => {
-                  const target = Number(goal.targetValue || goal.target);
-                  const current = Number(goal.currentProgress || goal.current || 0);
+                data={goals.map((g) => {
+                  const target = Number(g.targetValue || g.target || 1);
+                  const current = Number(g.currentProgress || g.current || 0);
                   return {
-                    name: goal.title,
-                    completed:
-                      target > 0
-                        ? Math.min(100, Math.round((current / target) * 100))
-                        : 0,
+                    name: g.title,
+                    completed: Math.min(100, Math.round((current / target) * 100)),
                     target: 100,
                   };
                 })}
@@ -191,7 +203,7 @@ function Analytics() {
               <EmptyState
                 icon={Target}
                 title="No active goals"
-                message="Create goals to track their progress here."
+                message="Create goals to analyze target attainment."
               />
             )}
           </div>

@@ -6,83 +6,83 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Cell,
 } from "recharts";
 
-const defaultData = [
-  { name: "Steps", completed: 82, target: 100 },
-  { name: "Study", completed: 74, target: 100 },
-  { name: "Exercise", completed: 68, target: 100 },
-  { name: "Reading", completed: 55, target: 100 },
-  { name: "Water", completed: 88, target: 100 },
-];
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const pct = payload[0]?.value;
+    return (
+      <div style={{
+        background: "var(--dm-surface)",
+        border: "1px solid var(--dm-border)",
+        borderRadius: "8px",
+        padding: "8px 14px",
+        boxShadow: "var(--dm-shadow-md)",
+      }}>
+        <p style={{ fontSize: "var(--dm-text-xs)", color: "var(--dm-text-muted)", marginBottom: "2px" }}>{label}</p>
+        <p style={{ fontSize: "var(--dm-text-md)", fontWeight: "var(--dm-weight-bold)", color: pct >= 100 ? "var(--dm-success)" : "var(--dm-primary)" }}>
+          {pct}% complete
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
-function GoalAnalytics({ data = defaultData }) {
+function GoalAnalytics({ data = [] }) {
+  if (data.length === 0) {
+    return (
+      <div style={{ height: "200px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--dm-text-muted)", fontSize: "var(--dm-text-sm)" }}>
+        No goal data available
+      </div>
+    );
+  }
+
   return (
-    <div className="dm-panel">
-      <div className="dm-panel-header">
-        <div>
-          <h3>Goal performance</h3>
-          <p>Compare your progress against your targets</p>
-        </div>
-      </div>
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart
+        data={data}
+        margin={{ top: 8, right: 8, left: -20, bottom: 4 }}
+        barSize={24}
+      >
+        <CartesianGrid
+          vertical={false}
+          strokeDasharray="3 3"
+          stroke="var(--dm-border)"
+          strokeOpacity={0.7}
+        />
 
-      <div className="dm-chart-container">
-        <ResponsiveContainer width="100%" height={320}>
-          <BarChart
-            data={data}
-            margin={{
-              top: 10,
-              right: 10,
-              left: -10,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--dm-border)" />
+        <XAxis
+          dataKey="name"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "var(--dm-text-muted)", fontSize: 11 }}
+          tickMargin={8}
+        />
 
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'var(--dm-text-muted)', fontSize: 12}} />
+        <YAxis
+          domain={[0, 100]}
+          axisLine={false}
+          tickLine={false}
+          width={34}
+          tickFormatter={(v) => `${v}%`}
+          tick={{ fill: "var(--dm-text-muted)", fontSize: 11 }}
+        />
 
-            <YAxis
-              domain={[0, 100]}
-              axisLine={false}
-              tickLine={false}
-              width={40}
-              tickFormatter={(value) => `${value}%`}
-              tick={{fill: 'var(--dm-text-muted)', fontSize: 12}}
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: "var(--dm-surface-hover)", borderRadius: "4px" }} />
+
+        <Bar dataKey="completed" radius={[4, 4, 0, 0]}>
+          {data.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={entry.completed >= 100 ? "var(--dm-success)" : "var(--dm-primary)"}
+              fillOpacity={0.85}
             />
-
-            <Tooltip
-              formatter={(value, name) => [
-                `${value}%`,
-                name === "completed" ? "Completed" : "Target",
-              ]}
-              contentStyle={{
-                borderRadius: "8px",
-                border: "1px solid var(--dm-border)",
-                boxShadow: "var(--dm-shadow-md)",
-                backgroundColor: "var(--dm-surface)",
-                color: "var(--dm-text)",
-              }}
-            />
-
-            <Bar
-              dataKey="completed"
-              name="Completed"
-              fill="#2c4d3b"
-              radius={[4, 4, 0, 0]}
-              barSize={28}
-            />
-
-            <Bar
-              dataKey="target"
-              name="Target"
-              fill="#e6e4df"
-              radius={[4, 4, 0, 0]}
-              barSize={28}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }
 

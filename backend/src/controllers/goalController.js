@@ -39,25 +39,28 @@ const getGoalById = async (req, res, next) => {
 
 const createGoal = async (req, res, next) => {
   try {
-    const { title, activityId, targetValue, unit, frequency, startDate, endDate } = req.body;
+    let { title, activityId, targetValue, target, unit, frequency, startDate, endDate } = req.body;
     
-    if (!title || !targetValue || !unit || !frequency || !startDate) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-    }
+    const finalTitle = title || "New Goal";
+    const rawTarget = targetValue !== undefined ? targetValue : (target !== undefined ? target : 1);
+    const finalTargetValue = parseFloat(rawTarget) || 1;
+    const finalUnit = unit || "hours";
+    const finalFrequency = frequency || "DAILY";
+    const finalStartDate = startDate ? new Date(startDate) : new Date();
 
-    if (parseFloat(targetValue) < 0) {
+    if (finalTargetValue < 0) {
       return res.status(400).json({ success: false, message: "Target value cannot be negative" });
     }
 
     const goal = await prisma.goal.create({
       data: {
         userId: req.user.id,
-        title,
-        activityId,
-        targetValue: parseFloat(targetValue),
-        unit,
-        frequency,
-        startDate: new Date(startDate),
+        title: finalTitle,
+        activityId: activityId || null,
+        targetValue: finalTargetValue,
+        unit: finalUnit,
+        frequency: finalFrequency,
+        startDate: finalStartDate,
         endDate: endDate ? new Date(endDate) : null,
         status: "ACTIVE"
       },
@@ -72,9 +75,11 @@ const createGoal = async (req, res, next) => {
 
 const updateGoal = async (req, res, next) => {
   try {
-    const { title, activityId, targetValue, unit, frequency, startDate, endDate, status } = req.body;
+    const { title, activityId, targetValue, target, unit, frequency, startDate, endDate, status } = req.body;
     
-    if (targetValue !== undefined && parseFloat(targetValue) < 0) {
+    const rawTarget = targetValue !== undefined ? targetValue : target;
+
+    if (rawTarget !== undefined && parseFloat(rawTarget) < 0) {
       return res.status(400).json({ success: false, message: "Target value cannot be negative" });
     }
 
@@ -88,7 +93,7 @@ const updateGoal = async (req, res, next) => {
       data: {
         title: title || goal.title,
         activityId: activityId !== undefined ? activityId : goal.activityId,
-        targetValue: targetValue !== undefined ? parseFloat(targetValue) : goal.targetValue,
+        targetValue: rawTarget !== undefined ? parseFloat(rawTarget) : goal.targetValue,
         unit: unit || goal.unit,
         frequency: frequency || goal.frequency,
         startDate: startDate ? new Date(startDate) : goal.startDate,
@@ -118,7 +123,6 @@ const deleteGoal = async (req, res, next) => {
   }
 };
 
-// Status Updaters
 const updateGoalStatus = async (req, res, next, status) => {
   try {
     const goal = await prisma.goal.findUnique({ where: { id: req.params.id } });
@@ -143,7 +147,6 @@ const resumeGoal = (req, res, next) => updateGoalStatus(req, res, next, "ACTIVE"
 const completeGoal = (req, res, next) => updateGoalStatus(req, res, next, "COMPLETED");
 const archiveGoal = (req, res, next) => updateGoalStatus(req, res, next, "ARCHIVED");
 
-// Progress Calculation logic
 const calculateProgress = async (goal) => {
   let dateFilter = {};
   const now = new Date();
@@ -158,7 +161,7 @@ const calculateProgress = async (goal) => {
   } else if (goal.frequency === "WEEKLY") {
     const startOfWeek = new Date(startOfDay);
     const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
     dateFilter = {
       gte: startOfWeek,
@@ -171,14 +174,12 @@ const calculateProgress = async (goal) => {
       lte: now
     };
   } else {
-    // Custom / total
     dateFilter = {
       gte: goal.startDate,
       lte: goal.endDate || now
     };
   }
 
-  // Aggregate logs
   let whereClause = {
     userId: goal.userId,
     loggedAt: dateFilter
@@ -190,7 +191,6 @@ const calculateProgress = async (goal) => {
 
   const logs = await prisma.activityLog.findMany({ where: whereClause });
   
-  // Assuming progress is based on value (or duration if value is null)
   let currentProgress = 0;
   for (const log of logs) {
     if (log.value !== null) {
@@ -198,7 +198,6 @@ const calculateProgress = async (goal) => {
     } else if (log.duration !== null) {
       currentProgress += log.duration;
     } else {
-      // Just a count if no value/duration
       currentProgress += 1;
     }
   }
@@ -206,7 +205,7 @@ const calculateProgress = async (goal) => {
   return {
     ...goal,
     currentProgress,
-    percentage: Math.min(Math.round((currentProgress / goal.targetValue) * 100), 100)
+    percentage: Math.min(Math.round((currentProgress / (goal.targetValue || 1)) * 100), 100)
   };
 };
 

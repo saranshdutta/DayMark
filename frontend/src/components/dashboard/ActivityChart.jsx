@@ -8,72 +8,88 @@ import {
   Tooltip,
 } from "recharts";
 
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        background: "var(--dm-surface)",
+        border: "1px solid var(--dm-border)",
+        borderRadius: "8px",
+        padding: "8px 14px",
+        boxShadow: "var(--dm-shadow-md)",
+      }}>
+        <p style={{ fontSize: "11px", color: "var(--dm-text-muted)", marginBottom: "2px" }}>{label}</p>
+        <p style={{ fontSize: "var(--dm-text-md)", fontWeight: "var(--dm-weight-bold)", color: "var(--dm-primary)" }}>
+          {payload[0].value} {payload[0].value === 1 ? "activity" : "activities"}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 function ActivityChart({ data = [] }) {
+  if (data.length === 0) {
+    return (
+      <div style={{
+        height: "220px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--dm-text-muted)",
+        fontSize: "var(--dm-text-sm)",
+      }}>
+        Log activities to see your weekly trend
+      </div>
+    );
+  }
+
   return (
-    <div className="dm-panel dm-activity-chart">
-      <div className="dm-panel-header">
-        <div>
-          <h3>Activity overview</h3>
-          <p>Your activity count over the last 7 days</p>
-        </div>
-      </div>
+    <ResponsiveContainer width="100%" height={220}>
+      <AreaChart data={data} margin={{ top: 8, right: 4, left: -24, bottom: 0 }}>
+        <defs>
+          <linearGradient id="dashboardAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%"  stopColor="var(--dm-primary)" stopOpacity={0.15} />
+            <stop offset="95%" stopColor="var(--dm-primary)" stopOpacity={0}    />
+          </linearGradient>
+        </defs>
 
-      <div className="dm-chart-container">
-        <ResponsiveContainer width="100%" height={300}>
-          <AreaChart
-            data={data}
-            margin={{
-              top: 10,
-              right: 10,
-              left: -10,
-              bottom: 0,
-            }}
-          >
-            <defs>
-              <linearGradient
-                id="activityChartGradient"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop offset="0%" stopOpacity={0.25} />
-                <stop offset="100%" stopOpacity={0} />
-              </linearGradient>
-            </defs>
+        <CartesianGrid
+          vertical={false}
+          strokeDasharray="3 3"
+          stroke="var(--dm-border)"
+          strokeOpacity={0.7}
+        />
 
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+        <XAxis
+          dataKey="day"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "var(--dm-text-muted)", fontSize: 11 }}
+          tickMargin={6}
+        />
 
-            <XAxis dataKey="day" axisLine={false} tickLine={false} />
+        <YAxis
+          allowDecimals={false}
+          axisLine={false}
+          tickLine={false}
+          width={30}
+          tick={{ fill: "var(--dm-text-muted)", fontSize: 11 }}
+        />
 
-            <YAxis
-              allowDecimals={false}
-              axisLine={false}
-              tickLine={false}
-              width={35}
-            />
+        <Tooltip content={<CustomTooltip />} />
 
-            <Tooltip
-              formatter={(value) => [`${value} activities`, "Activities"]}
-              contentStyle={{
-                borderRadius: "10px",
-                border: "1px solid #e5e7eb",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-              }}
-            />
-
-            <Area
-              type="monotone"
-              dataKey="activities"
-              strokeWidth={2}
-              fill="url(#activityChartGradient)"
-              dot={{ r: 3 }}
-              activeDot={{ r: 5 }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+        <Area
+          type="monotone"
+          dataKey="activities"
+          stroke="var(--dm-primary)"
+          strokeWidth={2.5}
+          fill="url(#dashboardAreaGrad)"
+          dot={{ r: 3.5, fill: "var(--dm-surface)", stroke: "var(--dm-primary)", strokeWidth: 2 }}
+          activeDot={{ r: 5, fill: "var(--dm-primary)", stroke: "var(--dm-surface)", strokeWidth: 2 }}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }
 

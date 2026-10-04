@@ -1,47 +1,41 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import MobileNav from "./MobileNav";
+import ActivityFormModal from "../activities/ActivityFormModal";
+import { ToastContainer } from "../common/Toast";
+import { useApp } from "../../context/AppContext";
 
-function MainLayout() {
-  const { user, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const handleLogout = () => {
-    setSidebarOpen(false);
-    logout();
-  };
+export function MainLayout() {
+  const { toasts, removeToast } = useApp();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   return (
-    <div className="dm-app-layout">
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onLogout={handleLogout}
-        user={user}
-      />
+    <div className="dm-app-shell">
+      {/* Desktop & Mobile Sidebar */}
+      <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
-      {sidebarOpen && (
-        <button
-          type="button"
-          className="dm-sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="Close navigation"
+      {/* Main Content Area */}
+      <div className="dm-main-content">
+        <Header
+          onMobileOpen={() => setMobileOpen(true)}
+          onOpenAddActivity={() => setAddModalOpen(true)}
         />
-      )}
 
-      <div className="dm-main-wrapper">
-        <Header user={user} onMenuClick={() => setSidebarOpen(true)} />
-
-        <main className="dm-main-content">
+        <main className="dm-page-container">
           <Outlet />
         </main>
       </div>
 
-      <MobileNav />
+      {/* Global Activity Creator Modal */}
+      <ActivityFormModal
+        isOpen={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+      />
+
+      {/* Floating Toast Notification Stack */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

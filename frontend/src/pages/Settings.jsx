@@ -1,423 +1,353 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
-  Settings as SettingsIcon,
-  Bell,
-  Moon,
-  Sun,
-  Shield,
-  Lock,
-  LogOut,
-  ChevronRight,
-  Save,
+  Sun, Moon, Globe, Bell, Lock, Check, ShieldCheck, Palette, Volume2,
 } from "lucide-react";
 
-import Button from "../components/common/Button";
-import Modal from "../components/common/Modal";
-import { useAuth } from "../context/AuthContext";
+import { PageHeader } from "../components/common/PageHeader";
+import { Button } from "../components/common/Button";
+import { Input } from "../components/common/Input";
+
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import authService from "../services/authService";
 
+const navItems = [
+  { id: "appearance",    label: "Appearance",    icon: Palette       },
+  { id: "notifications", label: "Notifications", icon: Bell          },
+  { id: "security",      label: "Security",      icon: Lock          },
+  { id: "general",       label: "General",       icon: Globe         },
+];
+
 function Settings() {
+  const { theme, setTheme, showToast } = useApp();
   const { logout } = useAuth();
+  const [activeSection, setActiveSection] = useState("appearance");
 
-  const [notifications, setNotifications] = useState(true);
+  const [passData, setPassData] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [passLoading, setPassLoading] = useState(false);
 
-  const [goalReminders, setGoalReminders] = useState(true);
-
-  const [activityReminders, setActivityReminders] = useState(true);
-
-  const { theme, setTheme } = useApp();
-
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
+  const [notifs, setNotifs] = useState({
+    dailyReminder:  true,
+    streakAlert:    true,
+    goalMilestone:  true,
+    wellnessTip:    false,
   });
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
 
-  const [saved, setSaved] = useState(false);
-
-  const handlePasswordChange = (event) => {
-    const { name, value } = event.target;
-
-    setPasswordData((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
-
-  const handleSavePassword = async () => {
-    setPasswordError("");
-    setPasswordSuccess("");
-
-    if (
-      !passwordData.currentPassword ||
-      !passwordData.newPassword ||
-      !passwordData.confirmPassword
-    ) {
-      setPasswordError("Please fill in all fields.");
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (passData.newPassword !== passData.confirmPassword) {
+      showToast({ type: "error", title: "Mismatch", message: "New passwords do not match." });
       return;
     }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError("New passwords do not match.");
+    if (passData.newPassword.length < 8) {
+      showToast({ type: "error", title: "Too short", message: "Password must be at least 8 characters." });
       return;
     }
-
+    setPassLoading(true);
     try {
       await authService.changePassword({
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
+        currentPassword: passData.currentPassword,
+        newPassword: passData.newPassword,
       });
-
-      setPasswordSuccess("Password updated successfully.");
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-
-      setTimeout(() => {
-        setIsPasswordModalOpen(false);
-        setPasswordSuccess("");
-      }, 1500);
+      setPassData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      showToast({ type: "success", title: "Password Updated", message: "Your password has been changed successfully." });
     } catch (error) {
-      setPasswordError(
-        error.response?.data?.message || "Failed to update password."
-      );
+      showToast({ type: "error", title: "Error", message: error.response?.data?.message || "Failed to update password." });
+    } finally {
+      setPassLoading(false);
     }
-  };
-
-  const handleSavePreferences = () => {
-    setSaved(true);
-
-    window.setTimeout(() => {
-      setSaved(false);
-    }, 2000);
-  };
-
-  const handleLogout = () => {
-    logout?.();
-    localStorage.removeItem("daymark_token");
-    localStorage.removeItem("daymark_user");
-    window.location.href = "/login";
   };
 
   return (
-    <div className="dm-page dm-settings-page">
-      {/* Header */}
-      <div className="dm-page-header">
-        <div className="dm-page-title-row">
-          <div className="dm-page-title-icon">
-            <SettingsIcon size={21} />
-          </div>
+    <div className="dm-animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: "var(--dm-space-6)" }}>
+      <PageHeader
+        title="Settings"
+        subtitle="Manage appearance, notifications, and account security."
+      />
 
-          <div>
-            <h1>Settings</h1>
-            <p>Manage your DayMark preferences and account settings.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Preferences */}
-      <section className="dm-settings-section">
-        <div className="dm-section-heading">
-          <div>
-            <h2>Preferences</h2>
-            <p>Control how DayMark behaves for you.</p>
-          </div>
-        </div>
-
-        <div className="dm-settings-list">
-          {/* Notifications */}
-          <div className="dm-setting-row">
-            <div className="dm-setting-icon">
-              <Bell size={19} />
-            </div>
-
-            <div className="dm-setting-content">
-              <h3>Notifications</h3>
-
-              <p>Receive updates about your activities and goals.</p>
-            </div>
-
-            <button
-              type="button"
-              className={["dm-toggle", notifications ? "is-active" : ""].join(
-                " ",
-              )}
-              onClick={() => setNotifications((value) => !value)}
-              aria-label="Toggle notifications"
-              aria-pressed={notifications}
-            >
-              <span />
-            </button>
-          </div>
-
-          {/* Goal reminders */}
-          <div className="dm-setting-row">
-            <div className="dm-setting-icon">
-              <Bell size={19} />
-            </div>
-
-            <div className="dm-setting-content">
-              <h3>Goal reminders</h3>
-
-              <p>Get reminders when your goals need attention.</p>
-            </div>
-
-            <button
-              type="button"
-              className={["dm-toggle", goalReminders ? "is-active" : ""].join(
-                " ",
-              )}
-              onClick={() => setGoalReminders((value) => !value)}
-              aria-label="Toggle goal reminders"
-              aria-pressed={goalReminders}
-            >
-              <span />
-            </button>
-          </div>
-
-          {/* Activity reminders */}
-          <div className="dm-setting-row">
-            <div className="dm-setting-icon">
-              <Bell size={19} />
-            </div>
-
-            <div className="dm-setting-content">
-              <h3>Activity reminders</h3>
-
-              <p>Get reminded to log your daily activities.</p>
-            </div>
-
-            <button
-              type="button"
-              className={[
-                "dm-toggle",
-                activityReminders ? "is-active" : "",
-              ].join(" ")}
-              onClick={() => setActivityReminders((value) => !value)}
-              aria-label="Toggle activity reminders"
-              aria-pressed={activityReminders}
-            >
-              <span />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Appearance */}
-      <section className="dm-settings-section">
-        <div className="dm-section-heading">
-          <div>
-            <h2>Appearance</h2>
-            <p>Choose how DayMark looks on your device.</p>
-          </div>
+      <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: "var(--dm-space-5)", alignItems: "start" }}>
+        {/* Left nav */}
+        <div className="dm-card" style={{ padding: "var(--dm-space-2)", position: "sticky", top: "calc(var(--dm-header-height) + var(--dm-space-4))" }}>
+          <nav style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {navItems.map(({ id, label, icon: Icon }) => {
+              const active = activeSection === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setActiveSection(id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--dm-space-3)",
+                    padding: "9px 12px",
+                    borderRadius: "var(--dm-radius-sm)",
+                    border: "none",
+                    background: active ? "var(--dm-primary-soft)" : "transparent",
+                    color: active ? "var(--dm-primary)" : "var(--dm-text-secondary)",
+                    fontWeight: active ? "var(--dm-weight-semibold)" : "var(--dm-weight-medium)",
+                    fontSize: "var(--dm-text-sm)",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    transition: "all var(--dm-transition-fast)",
+                    borderLeft: active ? "2px solid var(--dm-primary)" : "2px solid transparent",
+                  }}
+                >
+                  <Icon size={15} style={{ color: active ? "var(--dm-primary)" : "var(--dm-text-muted)" }} />
+                  {label}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        <div className="dm-theme-options">
-          <button
-            type="button"
-            className={[
-              "dm-theme-option",
-              theme === "light" ? "is-active" : "",
-            ].join(" ")}
-            onClick={() => setTheme("light")}
-          >
-            <Sun size={20} />
+        {/* Right content */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--dm-space-5)" }}>
 
-            <div>
-              <strong>Light</strong>
+          {/* ── APPEARANCE ── */}
+          {activeSection === "appearance" && (
+            <div className="dm-card">
+              <div className="dm-section-header">
+                <h3 className="dm-section-title">
+                  <Palette size={17} style={{ color: "var(--dm-primary)" }} />
+                  Theme Preference
+                </h3>
+              </div>
 
-              <span>Clean and bright interface</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            className={[
-              "dm-theme-option",
-              theme === "dark" ? "is-active" : "",
-            ].join(" ")}
-            onClick={() => setTheme("dark")}
-          >
-            <Moon size={20} />
-
-            <div>
-              <strong>Dark</strong>
-
-              <span>Easier on the eyes at night</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            className={[
-              "dm-theme-option",
-              theme === "system" ? "is-active" : "",
-            ].join(" ")}
-            onClick={() => setTheme("system")}
-          >
-            <SettingsIcon size={20} />
-
-            <div>
-              <strong>System</strong>
-
-              <span>Follow your device preference</span>
-            </div>
-          </button>
-        </div>
-      </section>
-
-      {/* Security */}
-      <section className="dm-settings-section">
-        <div className="dm-section-heading">
-          <div>
-            <h2>Security</h2>
-            <p>Manage your account security.</p>
-          </div>
-        </div>
-
-        <div className="dm-settings-action-list">
-          <button
-            type="button"
-            className="dm-settings-action"
-            onClick={() => setIsPasswordModalOpen(true)}
-          >
-            <div className="dm-setting-icon">
-              <Lock size={19} />
-            </div>
-
-            <div className="dm-setting-content">
-              <h3>Change password</h3>
-
-              <p>Update your account password.</p>
-            </div>
-
-            <ChevronRight size={18} />
-          </button>
-
-          <button type="button" className="dm-settings-action">
-            <div className="dm-setting-icon">
-              <Shield size={19} />
-            </div>
-
-            <div className="dm-setting-content">
-              <h3>Privacy</h3>
-
-              <p>Review how your DayMark data is handled.</p>
-            </div>
-
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      </section>
-
-      {/* Save */}
-      <div className="dm-settings-footer">
-        {saved && <span className="dm-settings-saved">Preferences saved.</span>}
-
-        <Button onClick={handleSavePreferences}>
-          <Save size={17} />
-          Save preferences
-        </Button>
-      </div>
-
-      {/* Account */}
-      <section className="dm-settings-section dm-danger-section">
-        <div className="dm-section-heading">
-          <div>
-            <h2>Account</h2>
-            <p>Actions related to your DayMark session.</p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="dm-logout-action"
-          onClick={handleLogout}
-        >
-          <LogOut size={18} />
-          <span>Log out</span>
-        </button>
-      </section>
-
-      {/* Change password modal */}
-      <Modal
-        isOpen={isPasswordModalOpen}
-        onClose={() => setIsPasswordModalOpen(false)}
-        title="Change password"
-        description="Enter your current password and choose a new one."
-      >
-        <div className="dm-password-form">
-          {passwordError && (
-            <div style={{ color: "var(--dm-danger-text)", marginBottom: "1rem" }}>
-              {passwordError}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--dm-space-3)" }}>
+                {[
+                  { value: "light",  label: "Light Mode",      icon: Sun,  hint: "Clean & bright"       },
+                  { value: "dark",   label: "Dark Mode",        icon: Moon, hint: "Easy on the eyes"     },
+                  { value: "system", label: "System Default",   icon: Globe,hint: "Follows device setting"},
+                ].map(({ value, label, icon: Icon, hint }) => {
+                  const isActive = theme === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setTheme(value)}
+                      style={{
+                        padding: "var(--dm-space-5) var(--dm-space-4)",
+                        borderRadius: "var(--dm-radius-md)",
+                        border: isActive ? "2px solid var(--dm-primary)" : "1px solid var(--dm-border)",
+                        backgroundColor: isActive ? "var(--dm-primary-soft)" : "var(--dm-surface-subtle)",
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "var(--dm-space-2)",
+                        transition: "all var(--dm-transition-fast)",
+                        position: "relative",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {isActive && (
+                        <span style={{
+                          position: "absolute",
+                          top: "8px",
+                          right: "8px",
+                          width: "18px",
+                          height: "18px",
+                          borderRadius: "50%",
+                          backgroundColor: "var(--dm-primary)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                          <Check size={10} color="#fff" />
+                        </span>
+                      )}
+                      <div style={{
+                        width: "40px", height: "40px",
+                        borderRadius: "var(--dm-radius-sm)",
+                        backgroundColor: isActive ? "var(--dm-primary)" : "var(--dm-surface)",
+                        color: isActive ? "#fff" : "var(--dm-text-muted)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <Icon size={20} />
+                      </div>
+                      <span style={{ fontSize: "var(--dm-text-sm)", fontWeight: isActive ? "var(--dm-weight-semibold)" : "var(--dm-weight-medium)", color: isActive ? "var(--dm-primary)" : "var(--dm-text-primary)" }}>
+                        {label}
+                      </span>
+                      <span style={{ fontSize: "10px", color: "var(--dm-text-muted)" }}>{hint}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
-          {passwordSuccess && (
-            <div style={{ color: "var(--dm-success-text)", marginBottom: "1rem" }}>
-              {passwordSuccess}
+
+          {/* ── NOTIFICATIONS ── */}
+          {activeSection === "notifications" && (
+            <div className="dm-card">
+              <div className="dm-section-header">
+                <h3 className="dm-section-title">
+                  <Bell size={17} style={{ color: "var(--dm-primary)" }} /> Notification Preferences
+                </h3>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {[
+                  { id: "dailyReminder",  label: "Daily Activity Reminder", desc: "Remind if no activities logged by 8:00 PM."       },
+                  { id: "streakAlert",    label: "Streak Preservation",      desc: "Alert before your activity streak breaks."        },
+                  { id: "goalMilestone",  label: "Goal Milestone",           desc: "Celebrate 50%, 75%, and 100% goal achievements."  },
+                  { id: "wellnessTip",    label: "Wellness Tips",            desc: "Daily micro-insights on sleep, hydration & mood." },
+                ].map(({ id, label, desc }, i, arr) => (
+                  <div
+                    key={id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "var(--dm-space-4) 0",
+                      borderBottom: i < arr.length - 1 ? "1px solid var(--dm-border)" : "none",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: "var(--dm-text-sm)", fontWeight: "var(--dm-weight-medium)", color: "var(--dm-text-primary)" }}>
+                        {label}
+                      </div>
+                      <div style={{ fontSize: "var(--dm-text-xs)", color: "var(--dm-text-muted)", marginTop: "2px" }}>
+                        {desc}
+                      </div>
+                    </div>
+
+                    {/* Custom Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setNotifs((prev) => ({ ...prev, [id]: !prev[id] }))}
+                      style={{
+                        position: "relative",
+                        width: "40px",
+                        height: "22px",
+                        borderRadius: "var(--dm-radius-full)",
+                        border: "none",
+                        cursor: "pointer",
+                        backgroundColor: notifs[id] ? "var(--dm-primary)" : "var(--dm-surface-hover)",
+                        flexShrink: 0,
+                        transition: "background-color var(--dm-transition-fast)",
+                      }}
+                    >
+                      <span style={{
+                        position: "absolute",
+                        top: "3px",
+                        left: notifs[id] ? "20px" : "3px",
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        backgroundColor: "#fff",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                        transition: "left var(--dm-transition-fast)",
+                      }} />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-          <div className="dm-form-group">
-            <label htmlFor="currentPassword">Current password</label>
 
-            <input
-              id="currentPassword"
-              name="currentPassword"
-              type="password"
-              value={passwordData.currentPassword}
-              onChange={handlePasswordChange}
-              placeholder="Enter current password"
-            />
-          </div>
+          {/* ── SECURITY ── */}
+          {activeSection === "security" && (
+            <div className="dm-card">
+              <div className="dm-section-header">
+                <h3 className="dm-section-title">
+                  <ShieldCheck size={17} style={{ color: "var(--dm-primary)" }} /> Change Password
+                </h3>
+              </div>
 
-          <div className="dm-form-group">
-            <label htmlFor="newPassword">New password</label>
+              <form onSubmit={handlePasswordSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--dm-space-4)" }}>
+                <Input
+                  label="Current Password"
+                  type="password"
+                  placeholder="Enter your current password"
+                  value={passData.currentPassword}
+                  onChange={(e) => setPassData({ ...passData, currentPassword: e.target.value })}
+                  required
+                  autoComplete="current-password"
+                />
 
-            <input
-              id="newPassword"
-              name="newPassword"
-              type="password"
-              value={passwordData.newPassword}
-              onChange={handlePasswordChange}
-              placeholder="Enter new password"
-            />
-          </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--dm-space-3)" }}>
+                  <Input
+                    label="New Password"
+                    type="password"
+                    placeholder="At least 8 characters"
+                    value={passData.newPassword}
+                    onChange={(e) => setPassData({ ...passData, newPassword: e.target.value })}
+                    required
+                    autoComplete="new-password"
+                  />
+                  <Input
+                    label="Confirm New Password"
+                    type="password"
+                    placeholder="Repeat new password"
+                    value={passData.confirmPassword}
+                    onChange={(e) => setPassData({ ...passData, confirmPassword: e.target.value })}
+                    required
+                    autoComplete="new-password"
+                  />
+                </div>
 
-          <div className="dm-form-group">
-            <label htmlFor="confirmPassword">Confirm new password</label>
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <Button type="submit" variant="primary" size="md" loading={passLoading}>
+                    Update Password
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
 
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              value={passwordData.confirmPassword}
-              onChange={handlePasswordChange}
-              placeholder="Confirm new password"
-            />
-          </div>
+          {/* ── GENERAL ── */}
+          {activeSection === "general" && (
+            <div className="dm-card">
+              <div className="dm-section-header">
+                <h3 className="dm-section-title">
+                  <Globe size={17} style={{ color: "var(--dm-primary)" }} /> General Preferences
+                </h3>
+              </div>
 
-          <div className="dm-modal-form-actions">
-            <Button
-              variant="secondary"
-              onClick={() => setIsPasswordModalOpen(false)}
-            >
-              Cancel
-            </Button>
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--dm-space-5)" }}>
+                <div style={{
+                  padding: "var(--dm-space-4)",
+                  borderRadius: "var(--dm-radius-sm)",
+                  border: "1px solid var(--dm-border)",
+                  backgroundColor: "var(--dm-surface-subtle)",
+                }}>
+                  <div style={{ fontSize: "var(--dm-text-sm)", fontWeight: "var(--dm-weight-medium)", color: "var(--dm-text-primary)", marginBottom: "4px" }}>
+                    Default Timezone
+                  </div>
+                  <div style={{ fontSize: "var(--dm-text-xs)", color: "var(--dm-text-muted)" }}>
+                    Detected automatically from your browser.
+                  </div>
+                  <div style={{ fontSize: "var(--dm-text-sm)", fontWeight: "var(--dm-weight-semibold)", color: "var(--dm-primary)", marginTop: "6px" }}>
+                    {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                  </div>
+                </div>
 
-            <Button onClick={handleSavePassword}>
-              <Save size={17} />
-              Update password
-            </Button>
-          </div>
+                <div style={{
+                  padding: "var(--dm-space-4)",
+                  borderRadius: "var(--dm-radius-sm)",
+                  border: "1px solid var(--dm-danger-border)",
+                  backgroundColor: "var(--dm-danger-soft)",
+                }}>
+                  <div style={{ fontSize: "var(--dm-text-sm)", fontWeight: "var(--dm-weight-semibold)", color: "var(--dm-danger)", marginBottom: "4px" }}>
+                    Danger Zone
+                  </div>
+                  <p style={{ fontSize: "var(--dm-text-xs)", color: "var(--dm-text-muted)", marginBottom: "var(--dm-space-3)" }}>
+                    Signing out will end your session. All local data is retained on the server.
+                  </p>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => { logout(); window.location.href = "/login"; }}
+                  >
+                    Sign Out
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </Modal>
+      </div>
     </div>
   );
 }

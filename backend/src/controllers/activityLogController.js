@@ -7,7 +7,6 @@ const getActivityLogs = async (req, res, next) => {
     let whereClause = { userId: req.user.id };
 
     if (date) {
-      // Find logs for a specific date (ignoring time)
       const startOfDay = new Date(date);
       startOfDay.setUTCHours(0, 0, 0, 0);
       
@@ -82,12 +81,29 @@ const getActivityLogById = async (req, res, next) => {
 
 const createActivityLog = async (req, res, next) => {
   try {
-    const { activityId, value, duration, note, loggedAt } = req.body;
-    
-    if (!activityId) {
-      return res.status(400).json({ success: false, message: "Activity ID is required" });
-    }
+    let { activityId, title, category, value, duration, note, loggedAt, date } = req.body;
 
+    // Auto-resolve or create Activity definition if activityId is missing
+    if (!activityId) {
+      const actName = title || "General Activity";
+      const actCategory = category || "ACADEMIC";
+
+      let activity = await prisma.activity.findFirst({
+        where: { name: actName, category: actCategory },
+      });
+
+      if (!activity) {
+        activity = await prisma.activity.create({
+          data: {
+            name: actName,
+            category: actCategory,
+            unit: "mins",
+          },
+        });
+      }
+      activityId = activity.id;
+    }
+    
     if (value !== undefined && value !== null && parseFloat(value) < 0) {
       return res.status(400).json({ success: false, message: "Value cannot be negative" });
     }
@@ -95,15 +111,17 @@ const createActivityLog = async (req, res, next) => {
     if (duration !== undefined && duration !== null && parseInt(duration) < 0) {
       return res.status(400).json({ success: false, message: "Duration cannot be negative" });
     }
+
+    const logDate = date || loggedAt;
     
     const log = await prisma.activityLog.create({
       data: {
         userId: req.user.id,
         activityId,
-        value: value ? parseFloat(value) : null,
-        duration: duration ? parseInt(duration) : null,
-        note,
-        loggedAt: loggedAt ? new Date(loggedAt) : new Date()
+        value: value !== undefined && value !== null ? parseFloat(value) : null,
+        duration: duration !== undefined && duration !== null ? parseInt(duration) : null,
+        note: note || null,
+        loggedAt: logDate ? new Date(logDate) : new Date()
       },
       include: { activity: true }
     });
